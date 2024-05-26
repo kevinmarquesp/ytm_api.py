@@ -66,6 +66,22 @@ def search(ytm: YTMusic, terms: list[str],
     return results
 
 
+@command_error_logger
+def artist(ytm: YTMusic, ids: list[str]) -> dict | list[dict]:
+    """Featch the artist information, the custom flags is suposed to be used
+    as a filter mechanism. It will return a list of dicts or a simple dict if
+    the list has only one dict element.
+    """
+    results = []
+
+    for id in ids:
+        result = ytm.get_artist(id)
+
+        results.append(result)
+
+    return results
+
+
 def main(args: Namespace) -> None:
     """Giving the command line arguments, already parsed, this funcion will
     figure out which subcommand routine it should run and display the result on
@@ -74,13 +90,18 @@ def main(args: Namespace) -> None:
     JSON_INDENT_SIZE = 2
 
     ytm = YTMusic()
+    result = "null"
 
     match args.subcommand:
         case "search":
             result = search(ytm, args.terms, args.top_result_only)
-            result_json = dumps(result, indent=JSON_INDENT_SIZE)
 
-            print(result_json)
+        case "artist":
+            result = artist(ytm, args.ids)
+
+    result_json = dumps(result, indent=JSON_INDENT_SIZE)
+
+    print(result_json)
 
 
 def parse_app_args(args: list[str]) -> Namespace:
@@ -89,7 +110,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "0.2.1"
+    VERSION = "0.3.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -106,10 +127,19 @@ def parse_app_args(args: list[str]) -> Namespace:
                                   search, it will iterate over each one and\
                                   return the results in a JSON array string.")
 
-    search.add_argument("terms", type=str, nargs="*", help="...TODO...")
+    search.add_argument("terms", nargs="*", help="...TODO...")
     search.add_argument("--top-result-only", "-t", action="store_true",
                         help="Filter the search output to only return the top\
                         results JSON object.")
+
+    # Artist subcommand parser.
+    artist = subparser.add_parser("artist", help="Fetch information about all\
+                                  data from a artist profile uising its ID.\
+                                  This data will include metada data info like\
+                                  description, name, etc. and songs info such\
+                                  as albums, singles, urls, etc.")
+
+    artist.add_argument("ids", nargs="*", help="...TODO...")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
