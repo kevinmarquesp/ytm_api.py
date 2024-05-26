@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from sys import argv, stderr
+from sys import argv, stdin, stderr
 from argparse import Namespace, ArgumentParser
 from json import dumps
+from select import select
 
 try:
     from ytmusicapi import YTMusic
@@ -88,7 +89,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "0.1.0"
+    VERSION = "0.2.0"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -115,6 +116,12 @@ def parse_app_args(args: list[str]) -> Namespace:
 
 
 if __name__ == "__main__":
+    if not select([stdin], [], [], 0) == ([], [], []):
+        for pipe_line in stdin:
+            pipe_line = pipe_line.replace("\n", "")
+
+            argv.append(pipe_line)
+
     args = parse_app_args(argv[1:])
 
     main(args)
