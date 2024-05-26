@@ -89,7 +89,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "0.2.0"
+    VERSION = "0.2.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -116,11 +116,13 @@ def parse_app_args(args: list[str]) -> Namespace:
 
 
 if __name__ == "__main__":
-    if not select([stdin], [], [], 0) == ([], [], []):
-        for pipe_line in stdin:
-            pipe_line = pipe_line.replace("\n", "")
+    while True:
+        line = stdin.readline().strip("\n")
 
-            argv.append(pipe_line)
+        if not line:
+            break
+
+        argv.append(line)
 
     args = parse_app_args(argv[1:])
 
