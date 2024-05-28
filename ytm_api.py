@@ -34,11 +34,10 @@ def command_error_logger(command: callable) -> callable:
 
 @command_error_logger
 def search(ytm: YTMusic, terms: list[str],
-           is_top_result_only: bool) -> dict | list[dict]:
+           is_top_result_only: bool) -> list[dict]:
     """It will use the Youtube Music API to search for each term individually,
     the final result will be stored in a list of dicts with "searchTerm" and
-    "searchResult" keys; Also, if the list has only one item (when the user
-    just search for one term) it will return the only dict of that list.
+    "searchResult" keys.
     """
     if len(terms) == 0:
         raise Exception("No search therms specified")
@@ -54,16 +53,11 @@ def search(ytm: YTMusic, terms: list[str],
 
         results += result
 
-    if len(results) == 0:
-        raise Exception("Could not find anything")
-    elif len(results) == 1:
-        return results[0]
-
     return results
 
 
 @command_error_logger
-def artist(ytm: YTMusic, ids: list[str]) -> dict | list[dict]:
+def artist(ytm: YTMusic, ids: list[str]) -> list[dict]:
     """Featch the artist information, the custom flags is suposed to be used
     as a filter mechanism. It will return a list of dicts or a simple dict if
     the list has only one dict element.
@@ -106,7 +100,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "1.4.1"
+    VERSION = "2.4.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
