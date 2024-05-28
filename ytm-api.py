@@ -52,10 +52,7 @@ def search(ytm: YTMusic, terms: list[str],
             result = list(filter(lambda elm: elm["category"] == "Top result",
                                  result))
 
-        results.append({
-            "searchTerm": term,
-            "searchResult": result
-        })
+        results += result
 
     if len(results) == 0:
         raise Exception("Could not find anything")
@@ -109,7 +106,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "0.3.1"
+    VERSION = "1.4.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
