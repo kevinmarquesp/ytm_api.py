@@ -3,7 +3,6 @@
 from sys import argv, stdin, stderr
 from argparse import Namespace, ArgumentParser
 from json import dumps
-from select import select
 
 try:
     from ytmusicapi import YTMusic
@@ -121,6 +120,7 @@ def parse_app_args(args: list[str]) -> Namespace:
 
     parser.add_argument("--version", "-v", action="version",
                         version=f"%(prog)s {VERSION}")
+    parser.add_argument("--pipe", "-p", action="store_true", help="...TODO...")
 
     # Search subcommand parser.
     search = subparser.add_parser("search", help="Given a list of terms to\
@@ -146,14 +146,17 @@ def parse_app_args(args: list[str]) -> Namespace:
 
 
 if __name__ == "__main__":
-    while True:
-        line = stdin.readline().strip("\n")
+    args = parse_app_args(argv[1:])
+
+    # Include the pipeline args and parse it again if the user used the --pipe.
+    while args.pipe:
+        line = stdin.readline().strip()
 
         if not line:
+            args = parse_app_args(argv[1:])
+
             break
 
         argv.append(line)
-
-    args = parse_app_args(argv[1:])
 
     main(args)
