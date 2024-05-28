@@ -24,7 +24,7 @@ def command_error_logger(command: callable) -> callable:
             return command(*args)
 
         except Exception as err:
-            stderr.write(f"[ERRO] {err}.\n")
+            stderr.write(f"\033[31m{type(err)} :: {err}\033[m\n")
             exit(1)
 
     return wrapper
@@ -72,6 +72,33 @@ def artist(ytm: YTMusic, ids: list[str]) -> list[dict]:
     return results
 
 
+@command_error_logger
+def albums(ytm: YTMusic, ids: list[str]) -> list[dict]:
+    """...TODO...
+    """
+    results = []
+
+    for id in ids:
+        artist = ytm.get_artist(id)
+
+        # Some artists may have any albums.
+        try:
+            browse_id = artist["albums"]["browseId"]
+        except KeyError as _:
+            continue
+
+        # Some artists have just a few albums that doesn't need a browse page.
+        if browse_id:
+            params = artist["albums"]["params"]
+            results += ytm.get_artist_albums(browse_id, params, limit=None)
+
+            continue
+
+        results += artist["albums"]["results"]
+
+    return results
+
+
 def main(args: Namespace) -> None:
     """Giving the command line arguments, already parsed, this funcion will
     figure out which subcommand routine it should run and display the result on
@@ -89,6 +116,9 @@ def main(args: Namespace) -> None:
         case "artist":
             result = artist(ytm, args.ids)
 
+        case "albums":
+            result = albums(ytm, args.ids)
+
     result_json = dumps(result, indent=JSON_INDENT_SIZE)
 
     print(result_json)
@@ -100,7 +130,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "2.4.1"
+    VERSION = "2.5.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -131,6 +161,11 @@ def parse_app_args(args: list[str]) -> Namespace:
                                   as albums, singles, urls, etc.")
 
     artist.add_argument("ids", nargs="*", help="...TODO...")
+
+    # Albums subcommand parser
+    albums = subparser.add_parser("albums", help="...TODO...")
+
+    albums.add_argument("ids", nargs="*", help="...TODO...")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
