@@ -93,12 +93,36 @@ def songs(ytm: YTMusic, ids: list[str]) -> list[dict]:
 
         # Some artists have just a few albums that doesn't need a browse page.
         if browse_id:
-            params = artist["songs"]["params"]
-            results += ytm.get_artist_albums(browse_id, params, limit=None)
+            results += ytm.get_playlist(browse_id)["tracks"]
 
             continue
 
+        # Note, this result will have different keys.
         results += artist["songs"]["results"]
+
+    return results
+
+
+def videos(ytm: YTMusic, ids: list[str]) -> list[dict]:
+    results = []
+
+    for id in ids:
+        artist = ytm.get_artist(id)
+
+        # Some artists may have any albums.
+        try:
+            browse_id = artist["videos"]["browseId"]
+        except KeyError as _:
+            continue
+
+        # Some artists have just a few albums that doesn't need a browse page.
+        if browse_id:
+            results.append(ytm.get_playlist(browse_id))
+
+            continue
+
+        # Note, this result will have different keys.
+        results += artist["videos"]["results"]
 
     return results
 
@@ -135,7 +159,7 @@ def main(args: Namespace) -> None:
     JSON_INDENT_SIZE = 2
 
     ytm = YTMusic()
-    result = "null"
+    result = []
 
     match args.subcommand:
         case "search":
@@ -148,6 +172,8 @@ def main(args: Namespace) -> None:
             result = songs(ytm, args.ids)
         case "singles":
             result = singles(ytm, args.ids)
+        case "videos":
+            result = videos(ytm, args.ids)
 
     result_json = dumps(result, indent=JSON_INDENT_SIZE)
 
@@ -160,7 +186,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "2.7.1"
+    VERSION = "2.8.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -215,6 +241,12 @@ def parse_app_args(args: list[str]) -> Namespace:
 
     singles.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
                          use quotes to specify more than one artist ID.")
+
+    # Videos subcommand parser
+    videos = subparser.add_parser("videos", help="...TODO...")
+
+    videos.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
+                        use quotes to specify more than one artist ID.")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
