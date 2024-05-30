@@ -13,26 +13,8 @@ except ModuleNotFoundError as err:
     exit(1)
 
 
-# Helper functions and decorators.
-
-def command_error_logger(command: callable) -> callable:
-    """Just show the error message on the std error and then exit with status
-    code 1 if the function command decorated doesn't raise some exception.
-    """
-    def wrapper(*args):
-        try:
-            return command(*args)
-
-        except Exception as err:
-            stderr.write(f"\033[31m{type(err)} :: {err}\033[m\n")
-            exit(1)
-
-    return wrapper
-
-
 # The CLI related functions will be below.
 
-@command_error_logger
 def search(ytm: YTMusic, terms: list[str],
            is_top_result_only: bool) -> list[dict]:
     """It will use the Youtube Music API to search for each term individually,
@@ -56,7 +38,6 @@ def search(ytm: YTMusic, terms: list[str],
     return results
 
 
-@command_error_logger
 def artist(ytm: YTMusic, ids: list[str]) -> list[dict]:
     """Featch the artist information, the custom flags is suposed to be used
     as a filter mechanism. It will return a list of dicts or a simple dict if
@@ -72,7 +53,6 @@ def artist(ytm: YTMusic, ids: list[str]) -> list[dict]:
     return results
 
 
-@command_error_logger
 def albums(ytm: YTMusic, ids: list[str]) -> list[dict]:
     """...TODO...
     """
@@ -192,4 +172,9 @@ if __name__ == "__main__":
 
         argv.append(line)
 
-    main(args)
+    try:
+        main(args)
+
+    except Exception as err:
+        stderr.write(f"\033[31m{type(err)} :: {err}\033[m\n")
+        exit(1)
