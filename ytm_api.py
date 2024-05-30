@@ -79,6 +79,54 @@ def albums(ytm: YTMusic, ids: list[str]) -> list[dict]:
     return results
 
 
+def songs(ytm: YTMusic, ids: list[str]) -> list[dict]:
+    results = []
+
+    for id in ids:
+        artist = ytm.get_artist(id)
+
+        # Some artists may have any albums.
+        try:
+            browse_id = artist["songs"]["browseId"]
+        except KeyError as _:
+            continue
+
+        # Some artists have just a few albums that doesn't need a browse page.
+        if browse_id:
+            params = artist["songs"]["params"]
+            results += ytm.get_artist_albums(browse_id, params, limit=None)
+
+            continue
+
+        results += artist["songs"]["results"]
+
+    return results
+
+
+def singles(ytm: YTMusic, ids: list[str]) -> list[dict]:
+    results = []
+
+    for id in ids:
+        artist = ytm.get_artist(id)
+
+        # Some artists may have any albums.
+        try:
+            browse_id = artist["singles"]["browseId"]
+        except KeyError as _:
+            continue
+
+        # Some artists have just a few albums that doesn't need a browse page.
+        if browse_id:
+            params = artist["singles"]["params"]
+            results += ytm.get_artist_albums(browse_id, params, limit=None)
+
+            continue
+
+        results += artist["singles"]["results"]
+
+    return results
+
+
 def main(args: Namespace) -> None:
     """Giving the command line arguments, already parsed, this funcion will
     figure out which subcommand routine it should run and display the result on
@@ -92,12 +140,14 @@ def main(args: Namespace) -> None:
     match args.subcommand:
         case "search":
             result = search(ytm, args.terms, args.top_result_only)
-
         case "artist":
             result = artist(ytm, args.ids)
-
         case "albums":
             result = albums(ytm, args.ids)
+        case "songs":
+            result = songs(ytm, args.ids)
+        case "singles":
+            result = singles(ytm, args.ids)
 
     result_json = dumps(result, indent=JSON_INDENT_SIZE)
 
@@ -110,7 +160,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "2.5.1"
+    VERSION = "2.6.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -153,6 +203,18 @@ def parse_app_args(args: list[str]) -> Namespace:
 
     albums.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
                         use quotes to specify more than one artist ID.")
+
+    # Songs subcommand parser
+    songs = subparser.add_parser("songs", help="...TODO...")
+
+    songs.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
+                       use quotes to specify more than one artist ID.")
+
+    # Singles subcommand parser
+    singles = subparser.add_parser("singles", help="...TODO...")
+
+    singles.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
+                         use quotes to specify more than one artist ID.")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
