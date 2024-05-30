@@ -151,6 +151,17 @@ def singles(ytm: YTMusic, ids: list[str]) -> list[dict]:
     return results
 
 
+def album(ytm: YTMusic, ids: list[str]) -> list[dict]:
+    results = []
+
+    for id in ids:
+        result = ytm.get_album(id)["tracks"]
+
+        results.append(result)
+
+    return results
+
+
 def main(args: Namespace) -> None:
     """Giving the command line arguments, already parsed, this funcion will
     figure out which subcommand routine it should run and display the result on
@@ -174,6 +185,8 @@ def main(args: Namespace) -> None:
             result = singles(ytm, args.ids)
         case "videos":
             result = videos(ytm, args.ids)
+        case "album":
+            result = album(ytm, args.ids)
 
     result_json = dumps(result, indent=JSON_INDENT_SIZE)
 
@@ -186,7 +199,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "2.8.1"
+    VERSION = "2.9.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
@@ -247,6 +260,13 @@ def parse_app_args(args: list[str]) -> Namespace:
 
     videos.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
                         use quotes to specify more than one artist ID.")
+
+    # Album subcommand parser
+    album = subparser.add_parser("album", help="...TODO...")
+
+    album.add_argument("ids", nargs="*", help="List of playlist IDs to\
+                         fetch, use quotes to specify more than one playlist\
+                         ID.")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
