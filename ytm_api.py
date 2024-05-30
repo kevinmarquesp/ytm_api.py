@@ -3,6 +3,7 @@
 from sys import argv, stdin, stderr
 from argparse import Namespace, ArgumentParser
 from json import dumps
+from concurrent.futures import ThreadPoolExecutor
 
 try:
     from ytmusicapi import YTMusic
@@ -15,25 +16,24 @@ except ModuleNotFoundError as err:
 
 # The CLI related functions will be below.
 
-def search(ytm: YTMusic, terms: list[str],
-           is_top_result_only: bool) -> list[dict]:
-    """It will use the Youtube Music API to search for each term individually,
-    the final result will be stored in a list of dicts with "searchTerm" and
-    "searchResult" keys.
-    """
+def search(ytm: YTMusic, terms: list[str], is_top: bool) -> list[dict]:
     if len(terms) == 0:
         raise Exception("No search therms specified")
 
-    results = []
-
-    for term in terms:
+    def search_term(term):
         result = ytm.search(term)
 
-        if is_top_result_only:
-            result = list(filter(lambda elm: elm["category"] == "Top result",
-                                 result))
+        if is_top:
+            result = filter(lambda e: e["category"] == "Top result", result)
+            result = list(result)
 
-        results += result
+        return result
+
+    results = []
+
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        for result in list(executor.map(search_term, terms)):
+            results.extend(result)
 
     return results
 
@@ -160,7 +160,7 @@ def parse_app_args(args: list[str]) -> Namespace:
     keep each subcommand parser separated by a commentary to improve
     readability.
     """
-    VERSION = "2.6.1"
+    VERSION = "2.7.1"
 
     # Parser and subparser definition, global flags should be here.
     parser = ArgumentParser(prog="ytm-api", description="Python script created\
