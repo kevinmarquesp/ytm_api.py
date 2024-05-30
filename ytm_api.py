@@ -141,14 +141,18 @@ def parse_app_args(args: list[str]) -> Namespace:
 
     parser.add_argument("--version", "-v", action="version",
                         version=f"%(prog)s {VERSION}")
-    parser.add_argument("--pipe", "-p", action="store_true", help="...TODO...")
+    parser.add_argument("--pipe", "-p", action="store_true", help="Will read\
+                        each line from the pipeline and include in the list\
+                        of arguments. If it's empty, it will freeze the\
+                        execution of this script, be aware.")
 
     # Search subcommand parser.
     search = subparser.add_parser("search", help="Given a list of terms to\
                                   search, it will iterate over each one and\
                                   return the results in a JSON array string.")
 
-    search.add_argument("terms", nargs="*", help="...TODO...")
+    search.add_argument("terms", nargs="*", help="List for terms to search,\
+                        use quotes to specify more than one search query.")
     search.add_argument("--top-result-only", "-t", action="store_true",
                         help="Filter the search output to only return the top\
                         results JSON object.")
@@ -160,12 +164,15 @@ def parse_app_args(args: list[str]) -> Namespace:
                                   description, name, etc. and songs info such\
                                   as albums, singles, urls, etc.")
 
-    artist.add_argument("ids", nargs="*", help="...TODO...")
+    artist.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
+                        use quotes to specify more than one artist ID.")
 
     # Albums subcommand parser
-    albums = subparser.add_parser("albums", help="...TODO...")
+    albums = subparser.add_parser("albums", help="Fetch the album data from an\
+                                  artist given its ID.")
 
-    albums.add_argument("ids", nargs="*", help="...TODO...")
+    albums.add_argument("ids", nargs="*", help="List of artist IDs to fetch,\
+                        use quotes to specify more than one artist ID.")
 
     # This will parse everything, including the subcommand parsers.
     return parser.parse_args(args)
